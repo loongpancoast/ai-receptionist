@@ -401,13 +401,58 @@ ROUTES = {
     "/api/whop": h_whop,
 }
 
+# ------------------------------------------------------------------ static
+# With a declared [tool.vercel] entrypoint, Vercel routes every request to
+# this app — static files are NOT served separately. So the app serves the
+# deploy-tree static files itself (whitelisted; no path traversal).
+import os
+
+STATIC_FILES = {
+    "/": ("index.html", "text/html; charset=utf-8", "no-cache"),
+    "/index.html": ("index.html", "text/html; charset=utf-8", "no-cache"),
+    "/dashboard.html": ("dashboard.html", "text/html; charset=utf-8", "no-cache"),
+    "/config.js": ("config.js", "application/javascript; charset=utf-8", "no-cache"),
+}
+STATIC_MIME = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+               ".svg": "image/svg+xml", ".webp": "image/webp", ".ico": "image/x-icon"}
+
+
+def _serve_static(path, start_response):
+    if path in STATIC_FILES:
+        fname, mime, cache = STATIC_FILES[path]
+    elif path.startswith("/assets/"):
+        fname = path.lstrip("/")
+        ext = os.path.splitext(fname)[1].lower()
+        mime = STATIC_MIME.get(ext)
+        cache = "public, max-age=31536000, immutable"
+        if not mime or ".." in fname:
+            return None
+    else:
+        return None
+    fpath = os.path.join(os.getcwd(), fname)
+    if not os.path.isfile(fpath):
+        return None
+    with open(fpath, "rb") as f:
+        body = f.read()
+    start_response("200 OK", [("Content-Type", mime),
+                              ("Content-Length", str(len(body))),
+                              ("Cache-Control", cache)])
+    return [body]
+
 
 def app(environ, start_response):
     path = (environ.get("PATH_INFO") or "").rstrip("/") or "/"
     handler = ROUTES.get(path)
-    if not handler:
-        return _resp(start_response, "404", {"error": f"unknown path: {path}"})
-    try:
-        return handler(environ, start_response)
-    except Exception as e:  # noqa: BLE001 - never leak tracebacks
-        return _resp(start_response, "502", {"error": f"handler failed: {type(e).__name__}"})
+    if handler:
+        try:
+            return handler(environ, start_response)
+        except Exception as e:  # noqa: BLE001 - never leak tracebacks
+            import urllib.error
+            if isinstance(e, urllib.error.HTTPError):
+                return _resp(start_response, "400",
+                             {"error": f"datastore rejected the request (HTTP {e.code})"})
+            return _resp(start_response, "502", {"error": f"handler failed: {type(e).__name__}"})
+    static = _serve_static(path, start_response)
+    if static is not None:
+        return static
+    return _resp(start_response, "404", {"error": f"unknown path: {path}"})
