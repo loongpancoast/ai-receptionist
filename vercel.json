@@ -1,1 +1,1 @@
-{"functions":{"api/**/*.py":{"excludeFiles":"site/**","maxDuration":30}}}
+{"functions":{"api.py":{"maxDuration":30}}}
