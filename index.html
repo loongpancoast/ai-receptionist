@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frontdesk: AI Receptionist for Local Businesses</title>
+<meta name="description" content="Frontdesk reads every inbound message, classifies it in one call, and routes it to the right person. Built for clinics, real estate teams, and home services.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%238b5cf6'/%3E%3Ccircle cx='12' cy='15' r='3' fill='%23fff'/%3E%3Ccircle cx='21' cy='15' r='3' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --ink:#ffffff;
+  --ink-dim:#c9c9d4;
+  --muted:#9d9dab;
+  --card:#0c0c14;
+  --card-2:#12121b;
+  --line:rgba(255,255,255,.10);
+  --purple:#8b5cf6;
+  --purple-deep:#6d3ff0;
+  --pink:#f472b6;
+  --peach:#f6bd8f;
+  --gold:#ffc94d;
+  --coral:#ff6b5e;
+  --teal:#7fd4c1;
+  --blue:#5b8cff;
+  --green:#3ecf8e;
+  --r-lg:28px;
+  --r-md:18px;
+  --ease:cubic-bezier(.23,1,.32,1);
+  --maxw:1200px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 700px at 8% -4%, #f7c9d9 0%, rgba(247,201,217,0) 55%),
+    radial-gradient(900px 620px at 0% 22%, #f6bd8f 0%, rgba(246,189,143,0) 50%),
+    radial-gradient(1400px 900px at 100% 10%, #8b5cf6 0%, rgba(139,92,246,0) 60%),
+    radial-gradient(1000px 800px at 96% 60%, #b04fe0 0%, rgba(176,79,224,0) 55%),
+    radial-gradient(1200px 900px at 50% 115%, #f2a6c0 0%, rgba(242,166,192,0) 55%),
+    #17121f;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--purple);color:#fff}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+:focus-visible{outline:3px solid var(--pink);outline-offset:3px;border-radius:8px}
+
+/* ---------- shell card (the ref's dark rounded stage) ---------- */
+.stage{
+  background:linear-gradient(180deg,#0e0e16 0%,#0b0b12 100%);
+  border-radius:44px;
+  margin:28px auto 0;
+  max-width:1360px;
+  width:calc(100% - 40px);
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 40px 120px rgba(20,8,40,.45);
+}
+.stage::before{ /* soft purple ambience inside the card, like the ref */
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(700px 420px at 88% 30%, rgba(139,92,246,.22), transparent 65%),
+    radial-gradient(600px 380px at 8% 70%, rgba(244,114,182,.10), transparent 60%);
+}
+
+/* ---------- nav ---------- */
+.nav{position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:26px 48px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:-.02em}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--purple),#c084fc);display:grid;place-items:center;box-shadow:0 6px 18px rgba(139,92,246,.45)}
+.nav-links{display:flex;gap:38px;font-size:15px;color:var(--muted);font-weight:500}
+.nav-links a{transition:color .2s var(--ease)}
+.nav-links a:hover{color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;cursor:pointer;border:0;font-family:inherit;transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn-purple{background:var(--purple-deep);color:#fff;padding:13px 28px;border-radius:12px;font-size:15px;box-shadow:0 8px 24px rgba(109,63,240,.4)}
+.btn-purple:hover{background:#7d4df5;box-shadow:0 10px 28px rgba(109,63,240,.55)}
+.btn-white{background:#fff;color:#0c0c14;padding:17px 44px;border-radius:999px;font-size:16px;box-shadow:0 12px 32px rgba(255,255,255,.18)}
+.btn-white:hover{box-shadow:0 14px 38px rgba(255,255,255,.28)}
+.burger{display:none;background:none;border:0;color:#fff;padding:10px;cursor:pointer}
+
+/* ---------- hero (1:1 with ref composition) ---------- */
+.hero{position:relative;z-index:2;text-align:center;padding:56px 24px 110px}
+.robot{position:absolute;top:60%;mix-blend-mode:screen;width:min(230px,20vw);pointer-events:none;filter:drop-shadow(0 30px 40px rgba(0,0,0,.5));animation:float 7s ease-in-out infinite}
+.robot.left{left:max(8px,2vw);transform:translateY(-50%)}
+.robot{-webkit-mask-image:radial-gradient(ellipse 68% 68% at 50% 50%,#000 55%,transparent 98%);mask-image:radial-gradient(ellipse 68% 68% at 50% 50%,#000 55%,transparent 98%)}
+.robot.right{right:max(8px,2vw);transform:translateY(-50%);animation-delay:-3.5s}
+@keyframes float{0%,100%{margin-top:0}50%{margin-top:-22px}}
+@media (prefers-reduced-motion:reduce){.robot{animation:none}.reveal{opacity:1!important;transform:none!important}}
+
+.panel{
+  position:relative;z-index:1;max-width:880px;margin:0 auto 64px;
+  border:1px solid var(--line);border-radius:var(--r-lg);
+  background:rgba(255,255,255,.028);
+  padding:26px;display:grid;grid-template-columns:1fr 1fr;gap:20px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+.mini-card{border:1px solid var(--line);border-radius:var(--r-md);padding:22px 24px;background:rgba(10,10,16,.35);text-align:left}
+.mini-card h3{font-size:16px;font-weight:700;margin-bottom:14px}
+.bars{display:flex;align-items:flex-end;gap:12px;height:150px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.bar{width:100%;border-radius:8px;min-height:8px}
+.bar-lbl{font-size:11px;color:var(--muted)}
+.bar-axis{font-size:11px;color:var(--muted);height:150px;display:flex;flex-direction:column;justify-content:space-between;padding:2px 0 24px;flex:none}
+.donut-row{display:flex;align-items:center;gap:22px}
+.donut{width:130px;height:130px;flex:none}
+.donut-legend{font-size:14px;color:var(--ink-dim);display:grid;gap:10px}
+.donut-num{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.swatch{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:8px;vertical-align:baseline}
+.up{color:var(--green);font-weight:700}
+
+.hero h1{
+  font-size:clamp(44px,6.4vw,84px);line-height:1.04;font-weight:800;letter-spacing:-.035em;
+  text-wrap:balance;max-width:900px;margin:0 auto 22px;position:relative;z-index:2;
+}
+.hero h1 .grad{background:linear-gradient(100deg,#f9a8d4 0%,#c084fc 55%,#8b5cf6 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{color:var(--ink-dim);font-size:clamp(16px,1.8vw,20px);line-height:1.6;max-width:620px;margin:0 auto 40px;position:relative;z-index:2}
+.hero-cta{position:relative;z-index:2}
+.hero-note{margin-top:16px;font-size:14px;color:var(--muted);position:relative;z-index:2}
+.hero-note a{color:var(--ink-dim);font-weight:600;border-bottom:1px solid var(--line)}
+.confetti{position:absolute;border-radius:50%;opacity:.7;pointer-events:none;z-index:1}
+
+/* ---------- reveal on scroll ---------- */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+/* ---------- section scaffolding ---------- */
+section.block{padding:110px 0;position:relative}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pink);margin-bottom:16px}
+h2.sec{font-size:clamp(30px,4vw,48px);font-weight:800;letter-spacing:-.03em;line-height:1.12;text-wrap:balance;margin-bottom:16px}
+p.lead{color:var(--ink-dim);font-size:18px;line-height:1.65;max-width:640px}
+
+/* ---------- stats band ---------- */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:34px 32px;position:relative;overflow:hidden}
+.stat::after{content:"";position:absolute;inset:0;background:radial-gradient(320px 200px at 85% 15%,rgba(139,92,246,.18),transparent 70%);pointer-events:none}
+.stat .n{font-size:clamp(38px,4vw,54px);font-weight:800;letter-spacing:-.03em}
+.stat .l{color:var(--muted);font-size:15px;margin-top:8px;line-height:1.5}
+.stat .d{font-size:13px;font-weight:700;margin-top:12px}
+</style>
+</head>
+<body>
+
+<!-- ======================= STAGE: nav + hero (1:1 with ref) ======================= -->
+<div class="stage">
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="Frontdesk home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="6" cy="9" r="2.6" fill="#fff"/><circle cx="12.5" cy="9" r="2.6" fill="#fff"/></svg>
+      </span>
+      Frontdesk
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#demo">Live triage</a>
+      <a href="#uses">Use cases</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#pricing" class="menu-cta">Start free trial</a>
+    </nav>
+    <div style="display:flex;gap:12px;align-items:center">
+      <a class="btn btn-purple" href="#pricing">Start free trial</a>
+      <button class="burger" aria-label="Open menu" aria-expanded="false">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <img class="robot left" src="assets/robot-left.png" alt="Friendly 3D receptionist robot floating beside the headline" fetchpriority="high">
+    <img class="robot right" src="assets/robot-right.png" alt="" aria-hidden="true" fetchpriority="high">
+    <span class="confetti" style="left:12%;top:30%;width:9px;height:9px;background:#f9a8d4"></span>
+    <span class="confetti" style="left:20%;top:64%;width:7px;height:7px;background:#f6bd8f"></span>
+    <span class="confetti" style="right:14%;top:26%;width:10px;height:10px;background:#c084fc"></span>
+    <span class="confetti" style="right:22%;top:70%;width:7px;height:7px;background:#7fd4c1"></span>
+    <span class="confetti" style="left:46%;top:18%;width:6px;height:6px;background:#ffc94d"></span>
+
+    <div class="panel" role="img" aria-label="Preview: message volume chart and auto-resolution rate">
+      <div class="mini-card">
+        <h3>Messages today</h3>
+        <div style="display:flex;gap:14px">
+          <div class="bars" style="flex:1">
+            <div class="bar-col"><div class="bar" style="height:46%;background:#f9a8d4"></div><span class="bar-lbl">Mon</span></div>
+            <div class="bar-col"><div class="bar" style="height:62%;background:#a78bfa"></div><span class="bar-lbl">Tue</span></div>
+            <div class="bar-col"><div class="bar" style="height:88%;background:#f9a8d4"></div><span class="bar-lbl">Wed</span></div>
+            <div class="bar-col"><div class="bar" style="height:55%;background:#a78bfa"></div><span class="bar-lbl">Thu</span></div>
+            <div class="bar-col"><div class="bar" style="height:74%;background:#f9a8d4"></div><span class="bar-lbl">Fri</span></div>
+          </div>
+          <div class="bar-axis"><span>120</span><span>60</span><span>0</span></div>
+        </div>
+      </div>
+      <div class="mini-card">
+        <h3>Auto-resolved</h3>
+        <div class="donut-row">
+          <svg class="donut" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="48" fill="none" stroke="#2a2a38" stroke-width="20"/>
+            <circle cx="60" cy="60" r="48" fill="none" stroke="#8b5cf6" stroke-width="20"
+              stroke-dasharray="277.6 301.6" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+            <circle cx="60" cy="60" r="48" fill="none" stroke="#f9a8d4" stroke-width="20"
+              stroke-dasharray="24 301.6" stroke-dashoffset="-277.6" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div>
+            <div class="donut-num">92%</div>
+            <div class="donut-legend">
+              <span><span class="swatch" style="background:#8b5cf6"></span>Answered <span class="up">▲ 6%</span></span>
+              <span><span class="swatch" style="background:#7fd4c1"></span>Routed <span class="up">▲ 2%</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h1><span class="grad">Every message</span><br>answered instantly.</h1>
+    <p class="sub">Frontdesk is the AI receptionist for local businesses. It reads every inbound message, classifies it in one call, and routes it to the right person. Nights, weekends, lunch rush, all covered.</p>
+    <div class="hero-cta">
+      <a class="btn btn-white" href="#pricing">Start free trial</a>
+    </div>
+    <p class="hero-note">Live in under 10 minutes. <a href="#demo">Watch a 2-minute demo</a></p>
+  </div>
+</div>
+
+<!-- ======================= stats band ======================= -->
+<section class="block" aria-label="Results">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="kicker">Why it pays for itself</p>
+      <h2 class="sec">One missed message can cost a $4,000 implant case.<br>Frontdesk misses none of them.</h2>
+    </div>
+    <div class="stats">
+      <div class="stat reveal">
+        <div class="n">1,284</div>
+        <div class="l">messages triaged last week across a 3-location dental group</div>
+        <div class="d up">▲ 18% vs. the week before</div>
+      </div>
+      <div class="stat reveal">
+        <div class="n">92%</div>
+        <div class="l">resolved or routed without a human touching them</div>
+        <div class="d up">▲ 6 pts after tuning routing rules</div>
+      </div>
+      <div class="stat reveal">
+        <div class="n">42s</div>
+        <div class="l">median first response, day or night, including Sundays</div>
+        <div class="d up">▼ from 3h 12m before Frontdesk</div>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+/* ---------- how it works: connected flow, not identical cards ---------- */
+.flow{margin-top:64px;position:relative}
+.flow-track{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative}
+.flow-track::before{content:"";position:absolute;top:34px;left:12%;right:12%;height:2px;background:linear-gradient(90deg,var(--purple),var(--pink));opacity:.5}
+.step{position:relative;padding:0 28px;text-align:left}
+.step .dot{width:68px;height:68px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;margin-bottom:22px;position:relative;z-index:1;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.step h3{font-size:21px;font-weight:800;margin-bottom:10px;letter-spacing:-.01em}
+.step p{color:var(--muted);font-size:15.5px;line-height:1.65}
+.step .verb{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--pink);margin-bottom:8px;display:block}
+
+/* ---------- live triage demo ---------- */
+.demo-shell{margin-top:60px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.demo-bar{display:flex;align-items:center;gap:8px;padding:16px 22px;border-bottom:1px solid var(--line)}
+.demo-bar i{width:12px;height:12px;border-radius:50%;background:#2c2c38;display:block}
+.demo-bar span{margin-left:10px;font-size:13px;color:var(--muted)}
+.demo-body{padding:8px 0}
+.msg{display:grid;grid-template-columns:1fr auto;gap:6px 18px;padding:20px 28px;border-bottom:1px solid rgba(255,255,255,.05);align-items:start}
+.msg:last-child{border-bottom:0}
+.msg .who{font-weight:700;font-size:15px}
+.msg .who small{color:var(--muted);font-weight:500;margin-left:8px}
+.msg .text{color:var(--ink-dim);font-size:15px;line-height:1.6;grid-column:1}
+.badges{display:flex;gap:8px;flex-wrap:wrap;grid-column:1;margin-top:4px}
+.badge{font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;letter-spacing:.01em}
+.b-cat{background:rgba(139,92,246,.16);color:#c4b5fd;border:1px solid rgba(139,92,246,.35)}
+.b-urgent{background:rgba(255,107,94,.14);color:#ff9d94;border:1px solid rgba(255,107,94,.4)}
+.b-high{background:rgba(246,189,143,.14);color:#f6bd8f;border:1px solid rgba(246,189,143,.4)}
+.b-normal{background:rgba(255,255,255,.07);color:var(--ink-dim);border:1px solid var(--line)}
+.b-pos{background:rgba(62,207,142,.13);color:#7fe3ae;border:1px solid rgba(62,207,142,.35)}
+.b-neg{background:rgba(255,107,94,.14);color:#ff9d94;border:1px solid rgba(255,107,94,.4)}
+.b-neu{background:rgba(255,255,255,.07);color:var(--ink-dim);border:1px solid var(--line)}
+.route{font-size:13.5px;color:var(--muted);text-align:right;line-height:1.5}
+.route strong{color:var(--teal);display:block;font-size:14px}
+.demo-cta{display:flex;justify-content:center;padding:28px}
+
+/* ---------- use cases: zig-zag with real photography ---------- */
+.use{margin-top:72px;display:grid;gap:56px}
+.use-row{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.use-row.flip .use-img{order:2}
+.use-img{border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.35);aspect-ratio:4/3}
+.use-img img{width:100%;height:100%;object-fit:cover}
+.use-copy h3{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+.use-copy p{color:var(--muted);font-size:16px;line-height:1.7;margin-bottom:18px}
+.use-copy ul{list-style:none;display:grid;gap:10px}
+.use-copy li{font-size:15px;color:var(--ink-dim);padding-left:28px;position:relative;line-height:1.55}
+.use-copy li::before{content:"";position:absolute;left:2px;top:7px;width:14px;height:14px;border-radius:50%;background:rgba(62,207,142,.18);border:2px solid var(--green)}
+
+/* ---------- pricing ---------- */
+.price-card{margin-top:56px;max-width:640px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:52px;position:relative;overflow:hidden}
+.price-card::before{content:"";position:absolute;inset:0;background:radial-gradient(500px 300px at 90% 0%,rgba(139,92,246,.25),transparent 65%);pointer-events:none}
+.price{font-size:64px;font-weight:800;letter-spacing:-.04em}
+.price small{font-size:18px;font-weight:600;color:var(--muted);letter-spacing:0}
+.price-feats{list-style:none;margin:28px 0 34px;display:grid;gap:12px}
+.price-feats li{font-size:15.5px;color:var(--ink-dim);padding-left:30px;position:relative;line-height:1.55}
+.price-feats li::before{content:"";position:absolute;left:2px;top:6px;width:15px;height:15px;border-radius:50%;background:rgba(139,92,246,.2);border:2px solid var(--purple)}
+.fine{margin-top:18px;font-size:13.5px;color:var(--muted);line-height:1.6}
+
+/* ---------- faq ---------- */
+.faq{margin-top:48px;max-width:760px;display:grid;gap:12px}
+.faq details{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:6px 24px;transition:border-color .2s}
+.faq details[open]{border-color:rgba(139,92,246,.45)}
+.faq summary{cursor:pointer;list-style:none;font-weight:700;font-size:16.5px;padding:18px 0;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:24px;color:var(--purple);font-weight:400;flex:none;transition:transform .25s var(--ease)}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq .a{color:var(--muted);font-size:15.5px;line-height:1.7;padding:0 0 22px}
+
+/* ---------- final cta + footer ---------- */
+.final{margin:40px auto 0;max-width:1360px;width:calc(100% - 40px);background:linear-gradient(135deg,#151022,#0c0c14 60%);border:1px solid var(--line);border-radius:44px;padding:100px 24px;text-align:center;position:relative;overflow:hidden}
+.final::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 400px at 50% 110%,rgba(139,92,246,.35),transparent 65%);pointer-events:none}
+.final h2{font-size:clamp(32px,4.6vw,56px);font-weight:800;letter-spacing:-.03em;text-wrap:balance;margin-bottom:18px;position:relative}
+.final p{color:var(--ink-dim);font-size:18px;margin-bottom:38px;position:relative}
+footer{padding:56px 0 40px;color:var(--muted);font-size:14px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.foot nav{display:flex;gap:24px}
+
+/* ---------- responsive ---------- */
+.menu-cta{display:none}
+@media (max-width:960px){
+  .nav .btn-purple{display:none}
+  .menu-cta{display:block;background:var(--purple-deep);color:#fff;text-align:center;font-weight:700;border-radius:10px;margin-top:6px}
+  .robot{display:none}
+  .donut{width:104px;height:104px}
+  .donut-num{font-size:42px}
+  .donut-legend{font-size:13px}
+  .donut-row{flex-wrap:wrap}
+  .nav{padding:20px 24px}
+  .nav-links{display:none;position:absolute;top:100%;left:24px;right:24px;background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;flex-direction:column;gap:4px;z-index:50}
+  .nav-links.open{display:flex}
+  .nav-links a{padding:12px 14px;border-radius:10px}
+  .nav-links a:hover{background:rgba(255,255,255,.05)}
+  .burger{display:block}
+  .robot{width:120px;top:38%}
+  .robot.left{left:6px}.robot.right{right:6px}
+  .panel{grid-template-columns:1fr;padding:18px;margin-bottom:48px}
+  .flow-track{grid-template-columns:1fr;gap:36px}
+  .flow-track::before{display:none}
+  .step{padding:0}
+  .use-row{grid-template-columns:1fr;gap:24px}
+  .use-row.flip .use-img{order:0}
+  .stats{grid-template-columns:1fr}
+  .msg{grid-template-columns:1fr}
+  .route{text-align:left}
+  .price-card{padding:36px 28px}
+  section.block{padding:72px 0}
+  .stage{border-radius:32px}
+}
+</style>
+
+<!-- ======================= how it works ======================= -->
+<section class="block" id="how" aria-label="How it works">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="kicker">How it works</p>
+      <h2 class="sec">Three steps. Zero missed messages.</h2>
+      <p class="lead">You connect the places customers already message you. Frontdesk does the rest, around the clock.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-track">
+        <div class="step reveal">
+          <span class="verb">Connect</span>
+          <div class="dot" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l2-5.4a8.3 8.3 0 0 1-1-4A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5Z"/></svg></div>
+          <h3>Plug in your inbox</h3>
+          <p>SMS, Instagram DMs, web chat, Google Business messages. Connect in about ten minutes, no developers needed. Your number stays yours.</p>
+        </div>
+        <div class="step reveal">
+          <span class="verb">Classify</span>
+          <div class="dot" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.2-2.6 5.7-.9 1-1.4 2-1.4 3.3H9c0-1.3-.5-2.3-1.4-3.3C6.2 13.2 5 11.4 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg></div>
+          <h3>Jev reads every message</h3>
+          <p>Each inbound message is classified in a single call: category, urgency, and sentiment. Booking, emergency, pricing question, reschedule, it knows the difference.</p>
+        </div>
+        <div class="step reveal">
+          <span class="verb">Route</span>
+          <div class="dot" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#7fd4c1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13m0 0-4-4m4 4-4 4"/><path d="M20 5v14" opacity=".4"/></svg></div>
+          <h3>The right person gets it</h3>
+          <p>Routine questions get an instant, accurate answer. Emergencies and hot leads go straight to a human with full context. Your rules, your call.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= live triage demo ======================= -->
+<section class="block" id="demo" aria-label="Live triage demo" style="padding-top:20px">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="kicker">See it think</p>
+      <h2 class="sec">One call. Category, urgency, sentiment, routed.</h2>
+      <p class="lead">Real messages from a dental clinic inbox, exactly as Frontdesk classified them this morning.</p>
+    </div>
+    <div class="demo-shell reveal">
+      <div class="demo-bar"><i></i><i></i><i></i><span>Frontdesk · Triage inbox · Lakeside Dental</span></div>
+      <div class="demo-body">
+        <div class="msg">
+          <div><div class="who">James Carter <small>8:02 AM · SMS</small></div>
+          <div class="text">My crown fell out and it really hurts. Can someone see me today?</div>
+          <div class="badges"><span class="badge b-cat">Emergency</span><span class="badge b-urgent">Urgent</span><span class="badge b-neu">Distressed</span></div></div>
+          <div class="route"><strong>Routed to Dr. Chen (on-call)</strong>patient notified · 8:02 AM</div>
+        </div>
+        <div class="msg">
+          <div><div class="who">Maria Gonzalez <small>8:14 AM · Web chat</small></div>
+          <div class="text">Hi, do you have any openings for a cleaning this Thursday afternoon?</div>
+          <div class="badges"><span class="badge b-cat">Booking</span><span class="badge b-normal">Normal</span><span class="badge b-neu">Neutral</span></div></div>
+          <div class="route"><strong>Booking link sent</strong>3 slots offered · 8:14 AM</div>
+        </div>
+        <div class="msg">
+          <div><div class="who">Priya Nair <small>8:31 AM · Instagram</small></div>
+          <div class="text">How much does whitening cost? Do you offer payment plans?</div>
+          <div class="badges"><span class="badge b-cat">Pricing</span><span class="badge b-normal">Normal</span><span class="badge b-pos">Curious</span></div></div>
+          <div class="route"><strong>Auto-answered</strong>price sheet + plans · 8:31 AM</div>
+        </div>
+        <div class="msg">
+          <div><div class="who">Tom Becker <small>9:05 AM · SMS</small></div>
+          <div class="text">Need to move my Friday appointment to next week sometime.</div>
+          <div class="badges"><span class="badge b-cat">Reschedule</span><span class="badge b-normal">Normal</span><span class="badge b-neu">Neutral</span></div></div>
+          <div class="route"><strong>Routed to front desk</strong>calendar opened · 9:05 AM</div>
+        </div>
+      </div>
+      <div class="demo-cta"><a class="btn btn-purple" href="dashboard.html">Open the live dashboard</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= use cases ======================= -->
+<section class="block" id="uses" aria-label="Use cases" style="padding-top:20px">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="kicker">Built for your front desk</p>
+      <h2 class="sec">Made for the businesses that live on messages.</h2>
+    </div>
+    <div class="use">
+      <div class="use-row reveal">
+        <div class="use-img"><img src="assets/dental.jpg" alt="Receptionist greeting a patient at a modern dental clinic front desk" loading="lazy"></div>
+        <div class="use-copy">
+          <h3>Dental clinics</h3>
+          <p>Emergencies jump the queue to the on-call dentist. Cleanings and reschedules get booking links instantly. Pricing questions get answered from your fee sheet, not a guess.</p>
+          <ul>
+            <li>Tooth pain and trauma flagged urgent in seconds</li>
+            <li>No-shows drop when confirmations go out automatically</li>
+            <li>After-hours messages handled, not piling up for Monday</li>
+          </ul>
+        </div>
+      </div>
+      <div class="use-row flip reveal">
+        <div class="use-img"><img src="assets/realestate.jpg" alt="Real estate agent shaking hands with buyers outside a home" loading="lazy"></div>
+        <div class="use-copy">
+          <h3>Real estate teams</h3>
+          <p>Showing requests route to the listing agent with the property attached. Pre-approval news and offer intent go straight to the top. Tire-kickers get polite, useful answers without burning agent time.</p>
+          <ul>
+            <li>Hot buyers flagged before the competition calls back</li>
+            <li>Every inquiry logged against the right listing</li>
+            <li>Weekend open-house questions answered on the spot</li>
+          </ul>
+        </div>
+      </div>
+      <div class="use-row reveal">
+        <div class="use-img"><img src="assets/homeservice.jpg" alt="Home service technician at work on an electrical panel" loading="lazy"></div>
+        <div class="use-copy">
+          <h3>Home services</h3>
+          <p>No heat in January is not a "we will get back to you" situation. Urgent jobs route to dispatch immediately, quotes go out with your real pricing, and the schedule fills while you are on the tools.</p>
+          <ul>
+            <li>Emergency calls separated from quote shoppers</li>
+            <li>Service area and pricing answered automatically</li>
+            <li>Jobs booked straight into your calendar</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= pricing ======================= -->
+<section class="block" id="pricing" aria-label="Pricing" style="padding-top:20px">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="kicker">Pricing</p>
+      <h2 class="sec">One plan. Everything included.</h2>
+      <p class="lead">No tiers to decode, no per-seat math. One extra booked job a month covers the whole year.</p>
+    </div>
+    <div class="price-card reveal">
+      <div class="price">$299<small>/month</small></div>
+      <ul class="price-feats">
+        <li>Unlimited inbound messages across SMS, Instagram, web chat, and Google Business</li>
+        <li>Jev classification on every message: category, urgency, sentiment</li>
+        <li>Custom routing rules per location, team, and schedule</li>
+        <li>Instant auto-replies from your own pricing, hours, and policies</li>
+        <li>Live triage dashboard with full message history</li>
+        <li>14-day free trial. Cancel anytime with two clicks.</li>
+      </ul>
+      <a class="btn btn-white" href="#" style="width:100%">Start free trial</a>
+      <p class="fine">No credit card required for the trial. If Frontdesk does not pay for itself in the first month, we will help you cancel, no hard feelings.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= faq ======================= -->
+<section class="block" id="faq" aria-label="FAQ" style="padding-top:20px">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="kicker">Questions</p>
+      <h2 class="sec">Asked by every owner before they switch.</h2>
+    </div>
+    <div class="faq">
+      <details class="reveal"><summary>Will customers know they are talking to an AI?</summary><div class="a">Frontdesk answers in your business's voice and says so honestly when asked. Most customers care about one thing: a fast, correct answer. That is what they get.</div></details>
+      <details class="reveal"><summary>What happens when it is not sure?</summary><div class="a">It does not guess. Anything below your confidence threshold routes to a human with the full conversation attached, and you can set different thresholds for different message types.</div></details>
+      <details class="reveal"><summary>Do I keep my existing phone number?</summary><div class="a">Yes. Frontdesk works with your current business number through SMS, and connects to the Instagram and Google Business accounts you already have.</div></details>
+      <details class="reveal"><summary>How long does setup take?</summary><div class="a">About ten minutes to connect your channels, then an hour or so of training on your pricing, hours, and policies. Most businesses are live the same day.</div></details>
+      <details class="reveal"><summary>Can I change the routing rules later?</summary><div class="a">Anytime, from the dashboard. Add a rule like "weekend emergencies go to the on-call phone" in plain language, no technical work.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= final cta + footer ======================= -->
+<div class="final reveal">
+  <div class="wrap">
+    <h2>Your next customer is messaging you right now.</h2>
+    <p>Be the business that answers in 42 seconds, not 3 hours.</p>
+    <a class="btn btn-white" href="#pricing">Start free trial</a>
+  </div>
+</div>
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="index.html" style="font-size:18px">
+      <span class="brand-mark" style="width:28px;height:28px" aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 18 18" fill="none"><circle cx="6" cy="9" r="2.6" fill="#fff"/><circle cx="12.5" cy="9" r="2.6" fill="#fff"/></svg>
+      </span>
+      Frontdesk
+    </a>
+    <nav aria-label="Footer">
+      <a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a><a href="dashboard.html">Dashboard</a>
+    </nav>
+    <span>© 2026 Frontdesk. All rights reserved.</span>
+  </div>
+</footer>
+
+<script>
+/* mobile nav */
+const burger=document.querySelector('.burger'),links=document.querySelector('.nav-links');
+burger.addEventListener('click',()=>{const o=links.classList.toggle('open');burger.setAttribute('aria-expanded',o)});
+/* reveal on scroll */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
