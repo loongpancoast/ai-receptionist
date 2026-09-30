@@ -12,6 +12,8 @@ parallel Whop-MCP track).
 | POST | `/api/webhook` | Twilio-style form POSTs (`Body/From/To`) or JSON -> triage + log, 200 TwiML/JSON |
 | GET/POST/PUT/DELETE | `/api/businesses` | Business config + routing rules CRUD |
 | GET | `/api/messages?business_id=` | Triage log, newest first (dashboard) |
+| GET | `/api/queue?business_id=` | Dashboard queue feed (display-shaped cards; thin alias over messages) |
+| GET/PUT | `/api/rules?business_id=` | Routing rules cards for the dashboard |
 | POST | `/api/whop` | STUB — Whop webhook scaffolding, 501 until product exists |
 
 ## Calibration
@@ -29,8 +31,17 @@ human review. Spam auto-drops only at >= 0.95.
 
 ## Deploy
 
-Git-based (Composio `files[]` deploys do NOT build `api/` serverless functions):
-push to GitHub, then `VERCEL_CREATE_NEW_DEPLOYMENT` with
+Single WSGI entrypoint: `api.py` exposes `app`, declared in `pyproject.toml`
+`[tool.vercel] entrypoint = "api:app"` (Vercel CLI 60+ requires this for new
+Python projects — file-based `/api/*.py` functions no longer build). All
+`/api/*` routes are handled inside that one function; shared logic
+(Jev question pack v1, ≥0.95 auto-action gate, Supabase client) lives in
+`shared.py`. Static files (`/`, `/dashboard.html`, `/config.js`, `/assets/*`)
+are served by Vercel directly from the repo root — root copies are deploy
+copies of `site/` (design track source of truth; only `config.js`'s
+`__API_BASE__` value is managed by this track).
+
+Git-based: push to GitHub, then `VERCEL_CREATE_NEW_DEPLOYMENT` with
 `gitSource {"type":"github","repoId":"<string>","ref":"main","sha":"<sha>"}` and
 `"target":"production"`. Redeploy after any env-var change. Diagnose SSO walls
 with `VERCEL_GET_PROJECT2` (production must not be walled).
