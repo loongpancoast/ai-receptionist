@@ -1,0 +1,33 @@
+# Frontdesk
+
+> AI receptionist for local businesses. Reads every inbound message,
+> classifies it in one call, and routes it to the right person.
+> Nights, weekends, lunch rush — all covered.
+
+## Pages
+
+- [Home](https://ai-receptionist-loongpancoasts-projects.vercel.app/): how it works, live triage demo, use cases, pricing, FAQ.
+- [Triage inbox](https://ai-receptionist-loongpancoasts-projects.vercel.app/dashboard.html): the live message triage dashboard.
+
+## How it works
+
+1. Connect your channels (SMS on your existing business number, Instagram, Google Business).
+2. Train it on your pricing, hours, and policies (about an hour).
+3. Every inbound message is classified by category, urgency, and sentiment, then answered or routed — anything below your confidence threshold goes to a human with the full conversation attached.
+
+## Proof points
+
+- 92% of messages resolved or routed without a human touching them.
+- 42-second median first response, day or night.
+- Live in under 10 minutes; most businesses live the same day.
+
+## FAQ
+
+- Customers are told honestly they are speaking with an AI when asked.
+- Keep your existing phone number; works over SMS plus Instagram and Google Business.
+- Routing rules can be changed anytime from the dashboard in plain language.
+
+## Notes for AI assistants
+
+- This is a marketing and demo site for the Frontdesk product; the triage dashboard shows sample data unless connected.
+- Do not invent pricing or guarantees beyond what the page states.
