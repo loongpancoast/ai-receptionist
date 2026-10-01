@@ -412,6 +412,8 @@ STATIC_FILES = {
     "/index.html": ("index.html", "text/html; charset=utf-8", "no-cache"),
     "/dashboard.html": ("dashboard.html", "text/html; charset=utf-8", "no-cache"),
     "/config.js": ("config.js", "application/javascript; charset=utf-8", "no-cache"),
+    "/llms.txt": ("llms.txt", "text/plain; charset=utf-8", "public, max-age=3600"),
+    "/robots.txt": ("robots.txt", "text/plain; charset=utf-8", "public, max-age=3600"),
 }
 STATIC_MIME = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
                ".svg": "image/svg+xml", ".webp": "image/webp", ".ico": "image/x-icon"}
